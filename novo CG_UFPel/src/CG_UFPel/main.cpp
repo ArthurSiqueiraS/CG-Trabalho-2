@@ -16,11 +16,16 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void render(GLFWwindow *window, Shader shader, vector<Model> models, vector<glm::mat4> transform);
 void processInput(GLFWwindow *window, glm::mat4 *model, vector<Model> *models, vector<glm::mat4> *transform, Shader shader);
 void printState();
 void createModel(const char *obj, vector<Model> *models, vector<glm::mat4> *transform);
 void deleteModel(vector<Model> *models, vector<glm::mat4> *transform);
 void setDimension(GLFWwindow *window, int key);
+void translate(GLFWwindow *window, Shader shader, vector<Model> *models, vector<glm::mat4> *transform, const int key, const char axis, const int sign);
+void rotate(GLFWwindow *window, Shader shader, vector<Model> *models, vector<glm::mat4> *transform, const int key, const char axis, const int sign);
+void scale(GLFWwindow *window, Shader shader, vector<Model> *models, vector<glm::mat4> *transform, const int key, const int sign);
+void shear(GLFWwindow *window, Shader shader, vector<Model> *models, vector<glm::mat4> *transform, const int key, const int x, const int y);
 glm::mat4 bigRotation(glm::mat4 mat, float deg, glm::vec3 rot, glm::vec3 transl);
 void animation1(GLFWwindow *window, glm::mat4 *model, vector<Model> *models, vector<glm::mat4> *transform, Shader shaders);
 
@@ -31,7 +36,7 @@ int nModels = 0;
 int position = 0;
 int activeModel = 0;
 int focus = 0;
-glm::vec3 dim(0.05, 0.05, 0.05);
+glm::vec3 dim(1.0, 1.0, 1.0);
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -87,7 +92,7 @@ int main()
 
     // build and compile shaders
     // -------------------------
-    Shader shader(FileSystem::getPath("resources/cg_ufpel.vs").c_str(), FileSystem::getPath("resources/cg_ufpel.fs").c_str());
+    Shader shader("resources/cg_ufpel.vs", "resources/cg_ufpel.fs");
     vector<Model> models;
     vector<glm::mat4> transform;
     // load models
@@ -114,31 +119,7 @@ int main()
         // -----
         processInput(window, &transform[activeModel], &models, &transform, shader);
 
-        // render
-        // ------
-        glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = camera.GetViewMatrix();
-
-        for(int i = 0; i < nModels; ++i) {
-            // don't forget to enable shader before setting uniforms
-            shader.use();
-
-            shader.setMat4("projection", projection);
-            shader.setMat4("view", view);
-
-            // render the loaded model
-            shader.setMat4("model", transform[i]);
-            models[i].Draw(shader);
-        }
-
-
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        render(window, shader, models, transform);
     }
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
@@ -147,11 +128,37 @@ int main()
     return 0;
 }
 
+void render(GLFWwindow *window, Shader shader, vector<Model> models, vector<glm::mat4> transform) {
+    glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // view/projection transformations
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+    glm::mat4 view = camera.GetViewMatrix();
+
+    for(int i = 0; i < nModels; ++i) {
+        // don't forget to enable shader before setting uniforms
+        shader.use();
+
+        shader.setMat4("projection", projection);
+        shader.setMat4("view", view);
+
+        // render the loaded model
+        shader.setMat4("model", transform[i]);
+        models[i].Draw(shader);
+    }
+
+    // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
+    // -------------------------------------------------------------------------------
+    glfwSwapBuffers(window);
+    glfwPollEvents();
+}
+
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window, glm::mat4 *model, vector<Model> *models, vector<glm::mat4> *transform, Shader shader)
 {
     float x = dim.x, y = dim.y, z = dim.z;
+    float currentFrame;
 
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -221,98 +228,71 @@ void processInput(GLFWwindow *window, glm::mat4 *model, vector<Model> *models, v
 
     // Translation
     if (glfwGetKey(window, GLFW_KEY_KP_6) == GLFW_PRESS)
-        *model = glm::translate(*model, glm::vec3(0.05f, 0.0f, 0.0f));
+        translate(window, shader, models, transform, GLFW_KEY_KP_6, 'x', 1);
     if (glfwGetKey(window, GLFW_KEY_KP_4) == GLFW_PRESS)
-        *model = glm::translate(*model, glm::vec3(-0.05f, 0.0f, 0.0f));
+        translate(window, shader, models, transform, GLFW_KEY_KP_4, 'x', -1);
     if (glfwGetKey(window, GLFW_KEY_KP_8) == GLFW_PRESS)
-        *model = glm::translate(*model, glm::vec3(0.0f, 0.05f, 0.0f));
+        translate(window, shader, models, transform, GLFW_KEY_KP_8, 'y', 1);
     if (glfwGetKey(window, GLFW_KEY_KP_2) == GLFW_PRESS)
-        *model = glm::translate(*model, glm::vec3(0.0f, -0.05f, 0.0f));
+        translate(window, shader, models, transform, GLFW_KEY_KP_2, 'y', -1);
     if (glfwGetKey(window, GLFW_KEY_KP_7) == GLFW_PRESS)
-        *model = glm::translate(*model, glm::vec3(0.0f, 0.0f, 0.05f));
+        translate(window, shader, models, transform, GLFW_KEY_KP_7, 'z', 1);
     if (glfwGetKey(window, GLFW_KEY_KP_9) == GLFW_PRESS)
-        *model = glm::translate(*model, glm::vec3(0.0f, 0.0f, -0.05f));
+        translate(window, shader, models, transform, GLFW_KEY_KP_9, 'z', -1);
 
     // Set rotation focus
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
         focus = ((int) focus + 1) % 2;
         printState();
-        while(glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+        while(glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
             glfwPollEvents();
-        }
     }
     // Rotation
-    if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS) {
-        if(focus)
-            *model = bigRotation(*model, 0.05f, glm::vec3(-0.01f, 0.0f, 0.0f), glm::vec3(0.0f, 0.5f, 0.0f));
-        else
-            *model = glm::rotate(*model, (float)0.05, glm::vec3(-0.01f, 0.0f, 0.0f));
-    }
-    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
-        if(focus)
-            *model = bigRotation(*model, 0.05f, glm::vec3(0.01f, 0.0f, 0.0f), glm::vec3(0.0f, -0.5f, 0.0f));
-        else
-            *model = glm::rotate(*model, (float)0.05, glm::vec3(0.01f, 0.0f, 0.0f));
-    }
-    if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS) {
-        if(focus)
-            *model = bigRotation(*model, 0.05f, glm::vec3(0.0f, -0.01f, 0.0f), glm::vec3(0.5f, 0.0f, 0.0f));
-        else
-            *model = glm::rotate(*model, (float)0.05, glm::vec3(0.0f, -0.01f, 0.0f));
-    }
-    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
-        if(focus)
-            *model = bigRotation(*model, 0.05f, glm::vec3(0.0f, 0.01f, 0.0f), glm::vec3(-0.5f, 0.0f, 0.0f));
-        else
-            *model = glm::rotate(*model, (float)0.05, glm::vec3(0.0f, 0.01f, 0.0f));
-    }
-    if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS) {
-        if(focus)
-            *model = bigRotation(*model, 0.05f, glm::vec3(0.0f, 0.0f, -0.01f), glm::vec3(0.5f, 0.0f, 0.0f));
-        else
-           *model = glm::rotate(*model, (float)0.05, glm::vec3(0.0f, 0.0f, 0.01f));
-    }
-    if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) {
-        if(focus)
-            *model = bigRotation(*model, 0.05f, glm::vec3(0.0f, 0.0f, 0.01f), glm::vec3(-0.5f, 0.0f, 0.0f));
-        else
-           *model = glm::rotate(*model, (float)0.05, glm::vec3(0.0f, 0.0f, -0.01f));
-    }
+    if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
+        rotate(window, shader, models, transform, GLFW_KEY_I, 'x', -1);
+    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
+        rotate(window, shader, models, transform, GLFW_KEY_K, 'x', 1);
+    if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
+        rotate(window, shader, models, transform, GLFW_KEY_J, 'y', -1);
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+        rotate(window, shader, models, transform, GLFW_KEY_L, 'y', 1);
+    if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS)
+        rotate(window, shader, models, transform, GLFW_KEY_U, 'z', 1);
+    if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
+        rotate(window, shader, models, transform, GLFW_KEY_O, 'z', -1);
 
     // Scaling
     if (glfwGetKey(window, GLFW_KEY_KP_SUBTRACT) == GLFW_PRESS)
-        *model = glm::scale(*model, glm::vec3(1.0f - x, 1.0f - y, 1.0f - z));
+        scale(window, shader, models, transform, GLFW_KEY_KP_SUBTRACT, -1);
     if (glfwGetKey(window, GLFW_KEY_KP_ADD) == GLFW_PRESS)
-        *model = glm::scale(*model, glm::vec3(1.0f + x, 1.0f + y, 1.0f + z));
+        scale(window, shader, models, transform, GLFW_KEY_KP_ADD, 1);
 
     // Reflection
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
         *model = glm::scale(*model, glm::vec3(-40.0f * x + 1.0f, -40.0f * y + 1.0f, -40.0f * z + 1.0f));
-        while(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+        while(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
             glfwPollEvents();
-        }
     }
 
     // Shear
     if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
-        *model = glm::shearX3D(*model, -0.01f, -0.01f);
+        shear(window, shader, models, transform, GLFW_KEY_V, 'x', -1.0);
     if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS)
-        *model = glm::shearX3D(*model, 0.01f, 0.01f);
+        shear(window, shader, models, transform, GLFW_KEY_N, 'x', 1.0);
     if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
-        *model = glm::shearY3D(*model, -0.01f, -0.01f);
+        shear(window, shader, models, transform, GLFW_KEY_G, 'y', -1.0);
     if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
-        *model = glm::shearY3D(*model, 0.01f, 0.01f);
+        shear(window, shader, models, transform, GLFW_KEY_B, 'y', 1.0);
     if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
-        *model = glm::shearZ3D(*model, -0.01f, -0.01f);
+        shear(window, shader, models, transform, GLFW_KEY_F, 'z', -1.0);
     if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
-        *model = glm::shearZ3D(*model, 0.01f, 0.01f);
+        shear(window, shader, models, transform, GLFW_KEY_H, 'z', 1.0);
 
     // Animations
     if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS) {
         animation1(window, model, models, transform, shader);
-        while(glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS) {
+        while(glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS)
             glfwPollEvents();
-        }
     }
 }
 
@@ -364,7 +344,7 @@ void setDimension(GLFWwindow *window, int key) {
     if(*dimension > 0)
         *dimension = 0.0;
     else
-        *dimension = 0.05;
+        *dimension = 1.0;
 
     printState();
     while(glfwGetKey(window, key) == GLFW_PRESS)
@@ -381,7 +361,7 @@ void createModel(const char *obj, vector<Model> *models, vector<glm::mat4> *tran
 
     char name[40] = "resources/objects/";
     strcat(name, obj);
-    Model model(FileSystem::getPath(name));
+    Model model(name);
     models->push_back(model);
     activeModel = nModels - 1;
     printState();
@@ -445,12 +425,12 @@ void animation1(GLFWwindow *window, glm::mat4 *model, vector<Model> *models, vec
     vector<Model> elems;
     vector<glm::mat4> mats;
 
-    Model planet(FileSystem::getPath("resources/objects/planet/planet.obj"));
-    Model rock1(FileSystem::getPath("resources/objects/rock/rock.obj"));
-    Model rock2(FileSystem::getPath("resources/objects/rock/rock.obj"));
-    Model rock3(FileSystem::getPath("resources/objects/rock/rock.obj"));
-    Model rock4(FileSystem::getPath("resources/objects/rock/rock.obj"));
-    Model rock5(FileSystem::getPath("resources/objects/rock/rock.obj"));
+    Model planet("resources/objects/planet/planet.obj");
+    Model rock1("resources/objects/rock/rock.obj");
+    Model rock2("resources/objects/rock/rock.obj");
+    Model rock3("resources/objects/rock/rock.obj");
+    Model rock4("resources/objects/rock/rock.obj");
+    Model rock5("resources/objects/rock/rock.obj");
     elems.push_back(planet);
     elems.push_back(rock1);
     elems.push_back(rock2);
@@ -521,6 +501,79 @@ void animation1(GLFWwindow *window, glm::mat4 *model, vector<Model> *models, vec
             elems[i].Draw(shader);
         }
         glfwSwapBuffers(window);
+    }
+}
+
+void translate(GLFWwindow *window, Shader shader, vector<Model> *models, vector<glm::mat4> *transform, const int key, const char axis, const int sign) {
+    float currentFrame, x = 0.0, y = 0.0, z = 0.0;
+    if(axis == 'x')
+        x = 1.0 * sign;
+    if(axis == 'y')
+        y = 1.0 * sign;
+    if(axis == 'z')
+        z = 1.0 * sign;
+
+    while(glfwGetKey(window, key) == GLFW_PRESS) {
+        currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+        (*transform)[activeModel] = glm::translate((*transform)[activeModel], glm::vec3(deltaTime*2.0*x, deltaTime*2.0*y, deltaTime*2.0*z));
+        render(window, shader, *models, *transform);
+    }
+}
+
+void rotate(GLFWwindow *window, Shader shader, vector<Model> *models, vector<glm::mat4> *transform, const int key, const char axis, const int sign) {
+    float currentFrame, x = 0.0, y = 0.0, z = 0.0;
+    if(axis == 'x')
+        x = 1.0 * sign;
+    if(axis == 'y')
+        y = 1.0 * sign;
+    if(axis == 'z')
+        z = 1.0 * sign;
+
+    while(glfwGetKey(window, key) == GLFW_PRESS) {
+        currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+        if(focus)
+            (*transform)[activeModel] = bigRotation((*transform)[activeModel], deltaTime*1.5, glm::vec3(x, y, z), glm::vec3((-deltaTime*15*y) + (-deltaTime*15*z), -deltaTime*15*x, 0.0f));
+        else
+            (*transform)[activeModel] = glm::rotate((*transform)[activeModel], (float) (deltaTime*1.5), glm::vec3(x, y, z));
+        render(window, shader, *models, *transform);
+    }
+}
+
+void scale(GLFWwindow *window, Shader shader, vector<Model> *models, vector<glm::mat4> *transform, const int key, const int sign) {
+    float currentFrame, param, x = dim.x, y = dim.y, z = dim.z;
+
+    while(glfwGetKey(window, key) == GLFW_PRESS) {
+        currentFrame = glfwGetTime();
+        deltaTime = (currentFrame - lastFrame);
+        lastFrame = currentFrame;
+
+        param = deltaTime*sign;
+
+        (*transform)[activeModel] = glm::scale((*transform)[activeModel], glm::vec3(1.0f + (param*x), 1.0f + (param*y), 1.0f + (param*z)));
+        render(window, shader, *models, *transform);
+    }
+}
+
+void shear(GLFWwindow *window, Shader shader, vector<Model> *models, vector<glm::mat4> *transform, const int key, const int axis, const int sign) {
+    float currentFrame, param;
+
+    while(glfwGetKey(window, key) == GLFW_PRESS) {
+        currentFrame = glfwGetTime();
+        deltaTime = (currentFrame - lastFrame);
+        lastFrame = currentFrame;
+
+        param = deltaTime*sign;
+        if(axis == 'x')
+            (*transform)[activeModel] = glm::shearX3D((*transform)[activeModel], param, param);
+        if(axis == 'y')
+            (*transform)[activeModel] = glm::shearY3D((*transform)[activeModel], param, param);
+        if(axis == 'z')
+            (*transform)[activeModel] = glm::shearZ3D((*transform)[activeModel], param, param);
+        render(window, shader, *models, *transform);
     }
 }
 
