@@ -38,4 +38,8 @@ G: Shear Y +
 F: Shear Z -
 H: Shear Z +
 
+Projection
+P: Projects to active axes
+
 F1: Animation
+F2: Spline curve

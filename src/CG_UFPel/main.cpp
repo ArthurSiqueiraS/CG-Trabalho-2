@@ -446,49 +446,42 @@ void animation1(GLFWwindow *window, vector<int> *models, vector<glm::mat4> *tran
 
     elems.push_back(planet);
     elems.push_back(rock);
-    elems.push_back(rock);
-    elems.push_back(rock);
-    elems.push_back(rock);
-    elems.push_back(rock);
 
-    glm::mat4 matPlanet;
-    glm::mat4 matRock1;
-    glm::mat4 matRock2;
-    glm::mat4 matRock3;
-    glm::mat4 matRock4;
-    glm::mat4 matRock5;
+    glm::mat4 mat;
 
-    matPlanet = glm::scale(matPlanet, glm::vec3(0.1f, 0.1f, 0.1f));
-    matRock1 = glm::translate(matPlanet, glm::vec3(-7.5f, 0.0f, 0.0f));
-    matRock1 = glm::scale(matRock1, glm::vec3(0.5f, 0.5f, 0.5f));
-    matRock1 = glm::rotate(matRock1, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    matRock1 = glm::rotate(matRock1, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    matRock2 = glm::translate(matPlanet, glm::vec3(0.0f, 7.5f, 0.0f));
-    matRock2 = glm::scale(matRock2, glm::vec3(0.5f, 0.5f, 0.5f));
-    matRock2 = glm::rotate(matRock2, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    matRock3 = glm::translate(matPlanet, glm::vec3(0.0f, -7.5f, 0.0f));
-    matRock3 = glm::scale(matRock3, glm::vec3(0.5f, 0.5f, 0.5f));
-    matRock3 = glm::rotate(matRock3, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    matPlanet = glm::translate(matPlanet, glm::vec3(-0.5f, 0.0f, 0.0f));
-    matPlanet = glm::rotate(matPlanet, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, -1.0f));
-    matRock4 = glm::translate(matPlanet, glm::vec3(0.0f, 0.0f, 7.5f));
-    matRock4 = glm::scale(matRock4, glm::vec3(0.5f, 0.5f, 0.5f));
-    matRock4 = glm::rotate(matRock4, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    matRock4 = glm::rotate(matRock4, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    matRock5 = glm::translate(matPlanet, glm::vec3(0.0f, 0.0f, -7.5f));
-    matRock5 = glm::scale(matRock5, glm::vec3(0.5f, 0.5f, 0.5f));
-    matRock5 = glm::rotate(matRock5, glm::radians(90.0f), glm::vec3(-1.0f, 0.0f, 0.0f));
+    mats.push_back(mat);
+    mats.push_back(mat);
+    mats.push_back(mat);
+    mats.push_back(mat);
+    mats.push_back(mat);
+    mats.push_back(mat);
 
-    mats.push_back(matPlanet);
-    mats.push_back(matRock1);
-    mats.push_back(matRock2);
-    mats.push_back(matRock3);
-    mats.push_back(matRock4);
-    mats.push_back(matRock5);
+    mats[0] = glm::scale(mats[0], glm::vec3(0.1f, 0.1f, 0.1f));
+    mats[1] = glm::translate(mats[0], glm::vec3(-7.5f, 0.0f, 0.0f));
+    mats[1] = glm::scale(mats[1], glm::vec3(0.5f, 0.5f, 0.5f));
+    mats[1] = glm::rotate(mats[1], glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    mats[1] = glm::rotate(mats[1], glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    mats[2] = glm::translate(mats[0], glm::vec3(0.0f, 7.5f, 0.0f));
+    mats[2] = glm::scale(mats[2], glm::vec3(0.5f, 0.5f, 0.5f));
+    mats[2] = glm::rotate(mats[2], glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    mats[3] = glm::translate(mats[0], glm::vec3(0.0f, -7.5f, 0.0f));
+    mats[3] = glm::scale(mats[3], glm::vec3(0.5f, 0.5f, 0.5f));
+    mats[3] = glm::rotate(mats[3], glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    mats[0] = glm::translate(mats[0], glm::vec3(-0.5f, 0.0f, 0.0f));
+    mats[0] = glm::rotate(mats[0], glm::radians(45.0f), glm::vec3(0.0f, 0.0f, -1.0f));
+    mats[4] = glm::translate(mats[0], glm::vec3(0.0f, 0.0f, 7.5f));
+    mats[4] = glm::scale(mats[4], glm::vec3(0.5f, 0.5f, 0.5f));
+    mats[4] = glm::rotate(mats[4], glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    mats[4] = glm::rotate(mats[4], glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    mats[5] = glm::translate(mats[0], glm::vec3(0.0f, 0.0f, -7.5f));
+    mats[5] = glm::scale(mats[5], glm::vec3(0.5f, 0.5f, 0.5f));
+    mats[5] = glm::rotate(mats[5], glm::radians(90.0f), glm::vec3(-1.0f, 0.0f, 0.0f));
 
+    mat = mats[0];
     float timer = 0.0;
     glm::mat4 view = camera.GetViewMatrix();
     int change = 0;
+    
     while(timer < 10.0) {
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
@@ -517,7 +510,7 @@ void animation1(GLFWwindow *window, vector<int> *models, vector<glm::mat4> *tran
             change = 1;
             elems[0] = dog;
             // mats[0] = glm::mat4();
-            mats[0] = glm::scale(matPlanet, glm::vec3(0.01, 0.01, 0.01));
+            mats[0] = glm::scale(mat, glm::vec3(0.01, 0.01, 0.01));
             mats[0] = glm::rotate(mats[0], glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
             mats[0] = glm::rotate(mats[0], glm::radians(15.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         }
@@ -534,7 +527,10 @@ void animation1(GLFWwindow *window, vector<int> *models, vector<glm::mat4> *tran
 
             // render the loaded model
             shader.setMat4("model", mats[i]);
-            elems[i].Draw(shader);
+            if(i == 0)
+                elems[0].Draw(shader);
+            else
+                elems[1].Draw(shader);
         }
         glfwSwapBuffers(window);
     }
