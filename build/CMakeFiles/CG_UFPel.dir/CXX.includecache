@@ -940,6 +940,24 @@ type_ptr.inl
 cstring
 -
 
+../includes/glm/gtx/optimum_pow.hpp
+../glm.hpp
+../includes/glm/glm.hpp
+optimum_pow.inl
+../includes/glm/gtx/optimum_pow.inl
+
+../includes/glm/gtx/optimum_pow.inl
+
+../includes/glm/gtx/spline.hpp
+../glm.hpp
+../includes/glm/glm.hpp
+../gtx/optimum_pow.hpp
+../includes/glm/gtx/optimum_pow.hpp
+spline.inl
+../includes/glm/gtx/spline.inl
+
+../includes/glm/gtx/spline.inl
+
 ../includes/glm/gtx/transform.hpp
 ../glm.hpp
 ../includes/glm/glm.hpp
@@ -1168,6 +1186,8 @@ glm/gtc/matrix_transform.hpp
 glm/gtc/type_ptr.hpp
 -
 glm/gtx/transform2.hpp
+-
+glm/gtx/spline.hpp
 -
 learnopengl/filesystem.h
 -

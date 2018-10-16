@@ -102,6 +102,10 @@ CMakeFiles/CG_UFPel.dir/src/CG_UFPel/main.cpp.o: ../includes/glm/gtc/quaternion.
 CMakeFiles/CG_UFPel.dir/src/CG_UFPel/main.cpp.o: ../includes/glm/gtc/quaternion.inl
 CMakeFiles/CG_UFPel.dir/src/CG_UFPel/main.cpp.o: ../includes/glm/gtc/type_ptr.hpp
 CMakeFiles/CG_UFPel.dir/src/CG_UFPel/main.cpp.o: ../includes/glm/gtc/type_ptr.inl
+CMakeFiles/CG_UFPel.dir/src/CG_UFPel/main.cpp.o: ../includes/glm/gtx/optimum_pow.hpp
+CMakeFiles/CG_UFPel.dir/src/CG_UFPel/main.cpp.o: ../includes/glm/gtx/optimum_pow.inl
+CMakeFiles/CG_UFPel.dir/src/CG_UFPel/main.cpp.o: ../includes/glm/gtx/spline.hpp
+CMakeFiles/CG_UFPel.dir/src/CG_UFPel/main.cpp.o: ../includes/glm/gtx/spline.inl
 CMakeFiles/CG_UFPel.dir/src/CG_UFPel/main.cpp.o: ../includes/glm/gtx/transform.hpp
 CMakeFiles/CG_UFPel.dir/src/CG_UFPel/main.cpp.o: ../includes/glm/gtx/transform.inl
 CMakeFiles/CG_UFPel.dir/src/CG_UFPel/main.cpp.o: ../includes/glm/gtx/transform2.hpp

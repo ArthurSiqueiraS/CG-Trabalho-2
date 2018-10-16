@@ -103,6 +103,10 @@ CMakeFiles/CG_UFPel.dir/src/CG_UFPel/main.cpp.o
  ../includes/glm/gtc/quaternion.inl
  ../includes/glm/gtc/type_ptr.hpp
  ../includes/glm/gtc/type_ptr.inl
+ ../includes/glm/gtx/optimum_pow.hpp
+ ../includes/glm/gtx/optimum_pow.inl
+ ../includes/glm/gtx/spline.hpp
+ ../includes/glm/gtx/spline.inl
  ../includes/glm/gtx/transform.hpp
  ../includes/glm/gtx/transform.inl
  ../includes/glm/gtx/transform2.hpp

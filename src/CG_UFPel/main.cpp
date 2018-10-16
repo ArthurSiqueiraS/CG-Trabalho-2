@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/transform2.hpp>
+#include <glm/gtx/spline.hpp>
 
 #include <learnopengl/filesystem.h>
 #include <learnopengl/shader_m.h>
@@ -28,6 +29,7 @@ void scale(GLFWwindow *window, Shader shader, vector<Model> objs, vector<int> mo
 void shear(GLFWwindow *window, Shader shader, vector<Model> objs, vector<int> models, vector<glm::mat4> *transform, const int key, const int x, const int y);
 glm::mat4 bigRotation(glm::mat4 mat, float deg, glm::vec3 rot, glm::vec3 transl);
 void animation1(GLFWwindow *window, vector<int> *models, vector<glm::mat4> *transform, Shader shader);
+void animation2(GLFWwindow *window, vector<int> *models, vector<glm::mat4> *transform, Shader shader);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -113,7 +115,6 @@ int main()
 
     // render loop
     // -----------
-
     createModel(0, &models, &transform);
     printState();
 
@@ -151,7 +152,6 @@ void render(GLFWwindow *window, Shader shader, vector<Model> objs, vector<int> m
     shader.setMat4("view", view);
 
     for(int i = 0; i < nModels; ++i) {
-
         // render the loaded model
         shader.setMat4("model", transform[i]);
         objs[models[i]].Draw(shader);
@@ -296,10 +296,22 @@ void processInput(GLFWwindow *window, vector<Model> objs, vector<int> *models, v
     if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
         shear(window, shader, objs, *models, transform, GLFW_KEY_H, 'z', 1.0);
 
+    // Projection
+    if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
+        (*transform)[activeModel] = glm::proj3D((*transform)[activeModel], glm::vec3(1.0f*x, 1.0f*y, 1.0f*z));
+        while(glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
+            glfwPollEvents();
+    }
+
     // Animations
     if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS) {
         animation1(window, models, transform, shader);
         while(glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS)
+            glfwPollEvents();
+    }
+    if (glfwGetKey(window, GLFW_KEY_F2) == GLFW_PRESS) {
+        animation2(window, models, transform, shader);
+        while(glfwGetKey(window, GLFW_KEY_F2) == GLFW_PRESS)
             glfwPollEvents();
     }
 }
@@ -430,6 +442,8 @@ void animation1(GLFWwindow *window, vector<int> *models, vector<glm::mat4> *tran
 
     Model planet("resources/objects/planet/planet.obj");
     Model rock("resources/objects/rock/rock.obj");
+    Model dog("resources/objects/doggo/planet.obj");
+
     elems.push_back(planet);
     elems.push_back(rock);
     elems.push_back(rock);
@@ -473,6 +487,96 @@ void animation1(GLFWwindow *window, vector<int> *models, vector<glm::mat4> *tran
     mats.push_back(matRock5);
 
     float timer = 0.0;
+    glm::mat4 view = camera.GetViewMatrix();
+    int change = 0;
+    while(timer < 10.0) {
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+        timer += deltaTime;
+
+        glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        // view/projection transformations
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        view;
+
+        mats[0] = glm::rotate(mats[0], glm::radians(deltaTime*180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        for(int i = 1; i < 6; ++i) {
+            if(timer < 4.5) {
+                mats[i] = bigRotation(mats[i], glm::radians(deltaTime*180.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(-deltaTime*90, 0.0f, 0.0f));
+            }
+            if(timer > 3.5) {
+                mats[i] = glm::translate(mats[i], glm::vec3(deltaTime*300.0, deltaTime*300.0, deltaTime*300.0));
+            }
+        }
+        if(timer > 3.25 && timer < 4.0) {
+            mats[0] = glm::scale(mats[0], glm::vec3(1.0f - deltaTime*6, 1.0f - deltaTime*6, 1.0f - deltaTime*6));
+        }
+        if(timer > 4.5 && change == 0) {
+            change = 1;
+            elems[0] = dog;
+            // mats[0] = glm::mat4();
+            mats[0] = glm::scale(matPlanet, glm::vec3(0.01, 0.01, 0.01));
+            mats[0] = glm::rotate(mats[0], glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+            mats[0] = glm::rotate(mats[0], glm::radians(15.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        }
+        if(timer > 5.5 && timer < 6.0) {
+            mats[0] = glm::scale(mats[0], glm::vec3(1.0f + deltaTime*11, 1.0f + deltaTime*11, 1.0f + deltaTime*11));
+        }
+        // don't forget to enable shader before setting uniforms
+        shader.use();
+
+        shader.setMat4("projection", projection);
+        shader.setMat4("view", view);
+
+        for(int i = 0; i < 6; ++i) {
+
+            // render the loaded model
+            shader.setMat4("model", mats[i]);
+            elems[i].Draw(shader);
+        }
+        glfwSwapBuffers(window);
+    }
+}
+
+void animation2(GLFWwindow *window, vector<int> *models, vector<glm::mat4> *transform, Shader shader) {
+    int n = nModels;
+    for(int i = 0; i < n; ++i) {
+        deleteModel(models, transform);
+    }
+    vector<Model> elems;
+    vector<glm::mat4> mats;
+
+    Model planet("resources/objects/planet/planet.obj");
+    elems.push_back(planet);
+
+    glm::mat4 mat;
+
+    glm::vec3 cp1 = glm::vec3(-1.5, 0.0, 0.0);
+    glm::vec3 cp2 = glm::vec3(-1.0, 0.5, -0.5);
+    glm::vec3 cp3 = glm::vec3(1.0, -0.5, -0.5);
+    glm::vec3 cp4 = glm::vec3(1.5, -0.5, 0.0);
+
+    mats.push_back(mat);
+    mats.push_back(mat);
+    mats.push_back(mat);
+    mats.push_back(mat);
+    mats.push_back(mat);
+
+    mats[1] = glm::translate(mats[1], cp1);
+    mats[1] = glm::scale(mats[1], glm::vec3(0.01, 0.01, 0.01));
+    mats[2] = glm::translate(mats[2], cp2);
+    mats[2] = glm::scale(mats[2], glm::vec3(0.01, 0.01, 0.01));
+    mats[3] = glm::translate(mats[3], cp3);
+    mats[3] = glm::scale(mats[3], glm::vec3(0.01, 0.01, 0.01));
+    mats[4] = glm::translate(mats[4], cp4);
+    mats[4] = glm::scale(mats[4], glm::vec3(0.01, 0.01, 0.01));
+
+    float timer = 0.0;
+    float t;
+    glm::vec3 cp;
+    mats[0] = glm::translate(mats[0], glm::vec3(-20.0, 0.0, 0.0));
     while(timer < 5.0) {
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
@@ -484,23 +588,30 @@ void animation1(GLFWwindow *window, vector<int> *models, vector<glm::mat4> *tran
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
+        cp = glm::cubic<glm::vec3>(cp4, cp3, cp2, cp1, timer/5);
 
-        mats[0] = glm::rotate(mats[0], glm::radians(deltaTime*180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        for(int i = 1; i < 6; ++i) {
-            mats[i] = bigRotation(mats[i], glm::radians(deltaTime*180.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(-deltaTime*90, 0.0f, 0.0f));
-        }
-
-        for(int i = 0; i < 6; ++i) {
+        glm::vec3 old = glm::vec3(mats[0][3][0], mats[0][3][1], mats[0][3][2]);
+        glm::vec3 trans = cp - old;
+        mats[0] = glm::translate(mats[0], trans);
+        mat = glm::scale(mats[0], glm::vec3(0.04f, 0.04f, 0.04f));
+        for(int i = 1; i < 5; ++i) {
             // don't forget to enable shader before setting uniforms
             shader.use();
 
             shader.setMat4("projection", projection);
             shader.setMat4("view", view);
-
             // render the loaded model
             shader.setMat4("model", mats[i]);
-            elems[i].Draw(shader);
+            elems[0].Draw(shader);
         }
+        // don't forget to enable shader before setting uniforms
+        shader.use();
+
+        shader.setMat4("projection", projection);
+        shader.setMat4("view", view);
+        // render the loaded model
+        shader.setMat4("model", mat);
+        elems[0].Draw(shader);
         glfwSwapBuffers(window);
     }
 }
